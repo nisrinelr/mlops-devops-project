@@ -1,3 +1,0 @@
-environment:
-
-  AIRFLOW_CONN_POSTGRES_DEFAULT: 'postgresql://admin:admin@postgres:5432/dbname'

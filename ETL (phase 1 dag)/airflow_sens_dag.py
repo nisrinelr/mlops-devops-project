@@ -26,7 +26,8 @@ CREATE TABLE IF NOT EXISTS sensor_readings (
     humidity INTEGER,
     aqi_category VARCHAR(30),
     heat_index DOUBLE PRECISION,
-    processed_at TIMESTAMP DEFAULT NOW()
+    processed_at TIMESTAMP DEFAULT NOW(),
+    is_true_anomaly VARCHAR(10)  -- Added for ML labels
 );
 
 CREATE TABLE IF NOT EXISTS sensor_anomalies (
@@ -41,7 +42,8 @@ CREATE TABLE IF NOT EXISTS sensor_anomalies (
     humidity INTEGER,
     anomaly_reason VARCHAR(50),
     severity VARCHAR(20),
-    processed_at TIMESTAMP DEFAULT NOW()
+    processed_at TIMESTAMP DEFAULT NOW(),
+    is_true_anomaly VARCHAR(10)  -- Added for ML labels
 );
 
 CREATE TABLE IF NOT EXISTS sensor_daily_summary (

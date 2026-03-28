@@ -48,7 +48,8 @@ RUN wget https://downloads.apache.org/kafka/${KAFKA_VERSION}/kafka_2.13-${KAFKA_
 COPY requirements.txt /tmp/requirements.txt
 RUN python3 -m venv /opt/airflow-venv && \
     /opt/airflow-venv/bin/pip install --upgrade pip && \
-    /opt/airflow-venv/bin/pip install -r /tmp/requirements.txt && \
+    /opt/airflow-venv/bin/pip install --timeout 300 --retries 5 -r /tmp/requirements.txt && \
+    /opt/airflow-venv/bin/python -c "import pandas, pyspark, joblib, sklearn; print('All key libraries installed successfully')" && \
     rm /tmp/requirements.txt
 
 # 6. Point Kafka log dirs to a persistent location
@@ -65,11 +66,14 @@ RUN KAFKA_CLUSTER_ID=$(/opt/kafka/bin/kafka-storage.sh random-uuid) && \
         -t $KAFKA_CLUSTER_ID \
         -c $KAFKA_HOME/config/broker.properties
 
+# 9. Copy init SQL
+COPY init-db.sql /tmp/init-db.sql
+
 # 8. Setup PostgreSQL and initialize Airflow DB
-# Use pg_ctlcluster directly which is more reliable in Docker than service command
 RUN pg_ctlcluster 16 main start && \
     su - postgres -c "psql -c \"CREATE USER airflow WITH PASSWORD 'airflow';\"" && \
     su - postgres -c "psql -c \"CREATE DATABASE airflow OWNER airflow;\"" && \
+    su - postgres -c "psql -d airflow -f /tmp/init-db.sql" && \
     /opt/airflow-venv/bin/airflow db migrate && \
     /opt/airflow-venv/bin/airflow users create \
         --username admin \
